@@ -1,6 +1,12 @@
 Changes
 =======
 
+0.01_02 08 Feb 2004
+  - Add DateTime::Format::Japanese::Traditional for processing
+    traditional Japanese calendar notation.
+  - Installation of DT::F::J::Traditional is optional
+  - minor fixes
+
 0.01_01 03 Feb 2004
   - Initial alpha release.
   - This release contains parsing/formatting of modern Japanese dates only

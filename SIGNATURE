@@ -14,22 +14,25 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 53564b837c1da81b9118cea9cecb462ac7e72960 Build.PL
-SHA1 6313b6085cb8bbc768c807ebc383dbe8987fe5c0 CHANGES
-SHA1 344db7bc29dc3a299a62239c79a3ae829f067abd MANIFEST
-SHA1 a202dd68cee5fd26f06462c2c41dcf3f8801c683 META.yml
+SHA1 fdc91d19faa2ca2aca7f10dd6acb8eeae20bad22 Build.PL
+SHA1 dc928ca3d4b6b5242109fce61b8897e117fb300c CHANGES
+SHA1 e221d212e0f85b47a5fe046a953859a7430593c9 MANIFEST
+SHA1 3cbe11470f6e1ed58cd35e7956a9e973f44f87c5 META.yml
 SHA1 faec519f213f7e603ecd1420d147b35713757738 Makefile.PL
-SHA1 f6aa1f50e7a7efec33b26159855c1cddf3e186d5 lib/DateTime/Format/Japanese.pm
+SHA1 39daaffa8900a4f6b3fc29ccd85809ecf3464843 lib/DateTime/Format/Japanese.pm
 SHA1 02ae6282f37da3422cdc8cc7288c8d56a996a648 lib/DateTime/Format/Japanese/Common.pm
-SHA1 37fe459f80962e7ba893947d1e8a1785d0867eb7 lib/DateTime/Format/Japanese/Era.pm
+SHA1 de89b374bbd71b4ee2e5191b66cb9fcca03e0b08 lib/DateTime/Format/Japanese/Era.pm
+SHA1 c17d73646de4de9d13f34f1f8ce067b6eff0031d lib/DateTime/Format/Japanese/Traditional.pm
 SHA1 db41546fdaa08a430744ff1a2fd5cc322f827528 t/01-parse_modern.t
 SHA1 86f76f138e159a3f3c319dc382aee2d483a4e002 t/02-format_modern.t
+SHA1 97641ad729a586712eeecf10c648cf87776c9280 t/03-parse_traditional.t
+SHA1 a3d9abdfb61f5154c84b572d4c1d180792f016a4 t/04-format_traditional.t
 SHA1 c838a87d244ff9faa9ef0b937bf0887a43e47b35 t/99-era.t
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQFAICofpIZqybP6lHMRAgjBAJ4ynuDTJzNsGEEy6Tdj52lQj64pXQCg20SV
-aQslvbN1NrwokscMq5k5fDA=
-=aL74
+iD8DBQFAJzoJpIZqybP6lHMRAuDRAJ9dF7ku0TL99XauhBQXoOJLVUY9cQCffSqB
+qVznT07NZm6qWI9+k76ZLT4=
+=DMfI
 -----END PGP SIGNATURE-----

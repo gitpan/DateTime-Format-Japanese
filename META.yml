@@ -7,10 +7,11 @@ abstract: A Japanese DateTime Formatter
 license: perl
 requires:
   DateTime: 0
+  DateTime::Calendar::Japanese: 0.05
   DateTime::Calendar::Japanese::Era: 0.04
   DateTime::Format::Builder: 0
   Params::Validate: 0
-  perl: 5.8.1
+  perl: 5.7
 recommends: {}
 build_requires:
   Test::More: 0
@@ -24,4 +25,8 @@ provides:
     version: 0.01
   DateTime::Format::Japanese::Era:
     file: lib/DateTime/Format/Japanese/Era.pm
+    version: 0.01
+  DateTime::Format::Japanese::Traditional:
+    file: lib/DateTime/Format/Japanese/Traditional.pm
+    version: 0.01
 generated_by: Module::Build version 0.22

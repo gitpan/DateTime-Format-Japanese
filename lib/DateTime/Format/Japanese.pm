@@ -454,6 +454,9 @@ DateTime::Format::Japanese - A Japanese DateTime Formatter
 =head1 SYNOPSIS
 
   use DateTime::Format::Japanese;
+  my $fmt = DateTime::Format::Japanese->new();
+
+  # or if you want to set options,
   my $fmt = DateTime::Format::Japanese->new(
     number_format         => FORMAT_KANJI,
     year_format           => FORMAT_ERA,
@@ -504,6 +507,11 @@ This function will parse a Japanese date/time string and convert it to a
 DateTime object. If the parsing is unsuccessful, it will croak.
 
 This method can be called as a class function as well.
+
+  my $dt = DateTime::Format::Japanese->parse_datetime($string);
+  # or
+  my $fmt = DateTime::Format::Japanese->new();
+  my $fmt->parse_daettime($string);
 
 =head1 FORMATTING METHODS
 

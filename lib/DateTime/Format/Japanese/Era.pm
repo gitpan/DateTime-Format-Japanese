@@ -2,7 +2,7 @@ package DateTime::Format::Japanese::Era;
 use strict;
 use DateTime::Calendar::Japanese::Era;
 use Encode();
-
+our $VERSION = 0.01;
 our %ERA_NAME2ID;
 our %ERA_ID2NAME;
 

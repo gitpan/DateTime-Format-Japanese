@@ -3,12 +3,15 @@ CHANGES
 lib/DateTime/Format/Japanese.pm
 lib/DateTime/Format/Japanese/Common.pm
 lib/DateTime/Format/Japanese/Era.pm
+lib/DateTime/Format/Japanese/Traditional.pm
 MANIFEST
 Makefile.PL
 META.yml
 SIGNATURE
 t/01-parse_modern.t
 t/02-format_modern.t
+t/03-parse_traditional.t
+t/04-format_traditional.t
 t/99-era.t
 
 SIGNATURE    Added here by Module::Build
