@@ -16,7 +16,6 @@ BEGIN
     );
     Exporter::export_ok_tags('constants');
 }
-# Got to call these after we define constants
 
 # XXX - OBJECT DEFINITION
 
@@ -357,7 +356,8 @@ my $parse_gregorian_bc = {
 };
 
 my $parse_with_era  = {
-    regex       => qr|^
+    regex       => qr|
+        ^
         ($DateTime::Format::Japanese::Common::RE_ERA_NAME)
         ($DateTime::Format::Japanese::Common::RE_ERA_YEAR)
         $DateTime::Format::Japanese::Common::RE_YEAR_MARKER
@@ -505,6 +505,15 @@ that it accepts any of the known formats that this module can produce.
 
 This function will parse a Japanese date/time string and convert it to a
 DateTime object. If the parsing is unsuccessful, it will croak.
+Note that it will try to auto-detect whatever encoding you're using via
+Encode::Guess, so you should be safe to pass any of UTF-8, euc-jp, 
+shift-jis, and iso-2022-jp encoded strings.
+
+This function should be able to parse almost all of the common Japanese
+date notations, whether they are written using ascii numerals, double byte
+numerals, and kanji numerals. The date components (year, month, day or
+era name, era year, month, day) must be present in the string. The time
+components are optional.
 
 This method can be called as a class function as well.
 
@@ -524,7 +533,7 @@ and return the appropriate string representation.
 
 =head2 $fmt-E<gt>format_datetime($dt)
 
-Create a complete string representation of a DateTime object in Japanese
+Create a complete string representation of a DateTime object in Japanese.
 
 =head2 $fmt-E<gt>format_ymd($dt)
 
@@ -628,9 +637,10 @@ Get/Set the option to include day of week.
 
 =head2 Day Of Week
 
-Day Of Weeks are accepted in the parsing, but is not used for generating
-DateTime objects. Only the actual date components are passed to the creation of
-DateTime object.
+Day of week is accepted in the parsing as the last element, but is never
+used for generating DateTime objects. That is, if you give a date and an
+unmatching day of week, your day of week will silently be ignored, and
+DateTime.pm will handle the actual calculation.
 
 =head2 Kanji Dates With Units
 
@@ -644,6 +654,6 @@ of the limit in the range of the fields.
 
 =head1 AUTHOR
 
-Daisuke Maki E<lt>daisuke@cpan.orgE<gt>
+Copyright (c) 2004 Daisuke Maki E<lt>daisuke@cpan.orgE<gt>. All rights reserved.
 
 =cut

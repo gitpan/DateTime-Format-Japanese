@@ -1,6 +1,11 @@
 Changes
 =======
 
+0.01 13 Feb 2004
+  - Be more explicit about requiring perl >= 5.7 in Build.PL
+    (reported via CPAN Testers "Barbie")
+  - Doc tweaks
+
 0.01_02 08 Feb 2004
   - Add DateTime::Format::Japanese::Traditional for processing
     traditional Japanese calendar notation.

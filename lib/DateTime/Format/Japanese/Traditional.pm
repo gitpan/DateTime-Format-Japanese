@@ -369,7 +369,7 @@ DateTime::Format::Japanese::Traditional - A Japanese DateTime Formatter For Trad
   );
 
   my $str = $fmt->format_datetime($dt);
-  my $dt  = $fmt->parse_datetime("Ê¿À®£±£¶Ç¯£±·î£²£·Æü¸áÁ°£µ»þ£³£°Ê¬");
+  my $dt  = $fmt->parse_datetime("Âç²½»°Ç¯ÌïÀ¸»°Æü±¯»°¤Ä¹ï");
 
 =head1 DESCRIPTION
 
@@ -405,7 +405,10 @@ that it accepts any of the known formats that this module can produce.
 
 This function will parse a traditional Japanese date/time string and convert
 it to a DateTime::Calendar::Japanese object. If the parsing is unsuccessful
- it will croak.
+it will croak.
+Note that it will try to auto-detect whatever encoding you're using via
+Encode::Guess, so you should be safe to pass any of UTF-8, euc-jp, 
+shift-jis, and iso-2022-jp encoded strings.
 
 This method can be called as a class function as well.
 
@@ -499,6 +502,6 @@ a traditional Japanese date.
 
 =head1 AUTHOR
 
-Daisuke Maki E<lt>daisuke@cpan.orgE<gt>
+Copyright (c) 2004 Daisuke Maki E<lt>daisuke@cpan.orgE<gt>. Allr rights reserved.
 
 =cut

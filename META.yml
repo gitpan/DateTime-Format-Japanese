@@ -2,7 +2,9 @@
 name: DateTime-Format-Japanese
 version: 0.01
 author:
-  - Daisuke Maki E<lt>daisuke@cpan.orgE<gt>
+  - ! >-
+    Copyright (c) 2004 Daisuke Maki E<lt>daisuke@cpan.orgE<gt>. All rights
+    reserved.
 abstract: A Japanese DateTime Formatter
 license: perl
 requires:
@@ -10,8 +12,9 @@ requires:
   DateTime::Calendar::Japanese: 0.05
   DateTime::Calendar::Japanese::Era: 0.04
   DateTime::Format::Builder: 0
+  Encode: 0
   Params::Validate: 0
-  perl: 5.7
+  perl: 5.007
 recommends: {}
 build_requires:
   Test::More: 0

@@ -1,12 +1,21 @@
 use strict;
 use Module::Build;
 
+if ($] < 5.007) {
+    print 
+        "  This module requires Encode.pm, which is only available for\n",
+        "  perl >= 5.7. You have perl $]. Sorry.\n\n",
+        "  (Patches to make it work on perl <= 5.6 are welcome!)\n";
+    exit 0;
+}
+
 my %requires = (
-     'DateTime'                  => 0,
-     'DateTime::Format::Builder' => 0,
-     'DateTime::Calendar::Japanese::Era' => '0.04',
-     'Params::Validate'          => 0,
-     'perl'                      => '5.7',
+    'DateTime'                  => 0,
+    'DateTime::Format::Builder' => 0,
+    'DateTime::Calendar::Japanese::Era' => '0.04',
+    'Encode'                    => 0,
+    'Params::Validate'          => 0,
+    'perl'                      => '5.007',
 );
 
 my $do_trad = Module::Build->y_n(
