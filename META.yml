@@ -1,0 +1,27 @@
+--- #YAML:1.0
+name: DateTime-Format-Japanese
+version: 0.01
+author:
+  - Daisuke Maki E<lt>daisuke@cpan.orgE<gt>
+abstract: A Japanese DateTime Formatter
+license: perl
+requires:
+  DateTime: 0
+  DateTime::Calendar::Japanese::Era: 0.04
+  DateTime::Format::Builder: 0
+  Params::Validate: 0
+  perl: 5.8.1
+recommends: {}
+build_requires:
+  Test::More: 0
+conflicts: {}
+provides:
+  DateTime::Format::Japanese:
+    file: lib/DateTime/Format/Japanese.pm
+    version: 0.01
+  DateTime::Format::Japanese::Common:
+    file: lib/DateTime/Format/Japanese/Common.pm
+    version: 0.01
+  DateTime::Format::Japanese::Era:
+    file: lib/DateTime/Format/Japanese/Era.pm
+generated_by: Module::Build version 0.22
