@@ -1,16 +1,20 @@
+# $Id: /mirror/DateTime-Format-Japanese/lib/DateTime/Format/Japanese/Traditional.pm 1688 2006-07-06T10:00:51.388109Z lestrrat  $
+#
+# Copyright (c) 2006 Daisuke Maki <dmaki@cpan.org>
+# All rights reserved.
+
 package DateTime::Format::Japanese::Traditional;
 use strict;
 use DateTime::Calendar::Japanese;
+use DateTime::Calendar::Japanese::Era;
 use DateTime::Format::Japanese::Common qw(:constants);
-use DateTime::Format::Japanese::Era;
 use Exporter;
 use Params::Validate qw(validate validate_pos SCALAR BOOLEAN);
 use constant FORMAT_NUMERIC_MONTH => 'FORMAT_NUMERIC_MONTH';
 use constant FORMAT_WAREKI_MONTH => 'FORMAT_WAREKI_MONTH';
-use vars qw(@ISA $VERSION %EXPORT_TAGS);
+use vars qw(@ISA %EXPORT_TAGS);
 BEGIN
 {
-    $VERSION     = '0.01';
     @ISA         = qw(Exporter);
     %EXPORT_TAGS = (
         constants => [ qw(
@@ -34,34 +38,36 @@ use vars qw(
 
 {
     @WAREKI_MONTHS = map {
-        DateTime::Format::Japanese::Common::euc2utf8($_)
+        DateTime::Format::Japanese::Common::_euc2utf8($_)
     } qw(ËÓ·î Ç¡·î ÌïÀ¸ ±¬·î »©·î ¿åÌµ·î Ê¸·î ÍÕ·î Ä¹·î ¿ÀÌµ·î Áú·î »ÕÁö);
     %WAREKI2MONTH = map { ($WAREKI_MONTHS[$_] => $_ + 1) } 0 .. $#WAREKI_MONTHS;
 
     @ZODIAC_HOURS = map {
-        DateTime::Format::Japanese::Common::euc2utf8($_)
+        DateTime::Format::Japanese::Common::_euc2utf8($_)
     } qw(±¬ Ã¤ Ì¦ ¸á Ì¤ ¿½ ÆÓ Øü °ç »Ò ±¯ ÆÒ);
     %ZODIAC2HOUR = map { ($ZODIAC_HOURS[$_] => $_ + 1) } 0 .. $#ZODIAC_HOURS;
 
     $HOUR_NO_QUARTER_MARKER = 
-        DateTime::Format::Japanese::Common::euc2utf8('¤Î¹ï');
+        DateTime::Format::Japanese::Common::_euc2utf8('¤Î¹ï');
     $HOUR_WITH_QUARTER_MARKER =
-        DateTime::Format::Japanese::Common::euc2utf8('¤Ä¹ï');
+        DateTime::Format::Japanese::Common::_euc2utf8('¤Ä¹ï');
 
-    $RE_WAREKI_MONTH = DateTime::Format::Japanese::Common::make_re(join( "|",
-        map { DateTime::Format::Japanese::Common::make_utf8_re_str($_) }
+    $RE_WAREKI_MONTH = DateTime::Format::Japanese::Common::_make_re(join( "|",
+        map { DateTime::Format::Japanese::Common::_make_utf8_re_str($_) }
         @WAREKI_MONTHS ));
     $RE_HOUR_NO_QUARTER_MARKER =
-        DateTime::Format::Japanese::Common::make_utf8_re(
+        DateTime::Format::Japanese::Common::_make_utf8_re(
             $HOUR_NO_QUARTER_MARKER);
     $RE_HOUR_WITH_QUARTER_MARKER =
-        DateTime::Format::Japanese::Common::make_utf8_re(
+        DateTime::Format::Japanese::Common::_make_utf8_re(
             $HOUR_WITH_QUARTER_MARKER);
-    $RE_ZODIAC_HOUR = DateTime::Format::Japanese::Common::make_re( join( '|', map {
-        DateTime::Format::Japanese::Common::make_utf8_re_str($_) } @ZODIAC_HOURS) );
+    $RE_ZODIAC_HOUR = DateTime::Format::Japanese::Common::_make_re( join( '|', map {
+        DateTime::Format::Japanese::Common::_make_utf8_re_str($_) } @ZODIAC_HOURS) );
 }
 
 my %NewValidate = (
+	output_encoding => { default => 'utf8' },
+	input_encoding => { default => 'Guess' },
     number_format => { 
         type    => SCALAR,
         default => FORMAT_KANJI
@@ -83,6 +89,26 @@ sub new
     my $self  = bless \%hash, $class;
 }
 
+sub input_encoding
+{
+	my $self = shift;
+	my $ret = $self->{input_encoding};
+	if (@_) {
+		$self->{input_encoding} = shift;
+	}
+	return $ret;
+}
+
+sub output_encoding
+{
+	my $self = shift;
+	my $ret = $self->{output_encoding};
+	if (@_) {
+		$self->{output_encoding} = shift;
+	}
+	return $ret;
+}
+
 sub number_format
 {
     my $self    = shift;
@@ -91,7 +117,7 @@ sub number_format
         my($val) = validate_pos(@_, {
             type => SCALAR,
             callbacks => {
-                'is valid number_format' => \&DateTime::Format::Japanese::Common::valid_number_format
+                'is valid number_format' => \&DateTime::Format::Japanese::Common::_valid_number_format
             }
         });
         $self->{number_format} = $val;
@@ -147,18 +173,17 @@ sub format_year
     my $self = shift;
     my ($dt) = validate_pos(@_, @FmtBasicValidate);
 
-    my $era_name = 
-        DateTime::Format::Japanese::Era::lookup_name_by_id($dt->era->id);
+    my $era_name = $dt->era->name;
 
     my $rv = '';
     if ($self->with_traditional_marker) {
         $rv .= $DateTime::Format::Japanese::Common::TRADITIONAL_MARKER;
     }
     $rv .= $era_name .
-        DateTime::Format::Japanese::Common::format_number(
+        DateTime::Format::Japanese::Common::_format_number(
             $dt->era_year, $self->number_format) . 
         $DateTime::Format::Japanese::Common::YEAR_MARKER;
-    return $rv;
+    return Encode::encode($self->{output_encoding}, $rv);
 }
 
 sub format_month
@@ -166,15 +191,17 @@ sub format_month
     my $self = shift;
     my ($dt) = validate_pos(@_, @FmtBasicValidate);
 
+	my $ret;
     if ($self->month_format eq FORMAT_WAREKI_MONTH) {
-        return $WAREKI_MONTHS[ $dt->month - 1 ];
+        $ret = $WAREKI_MONTHS[ $dt->month - 1 ];
     } else {
-        return
-            DateTime::Format::Japanese::Common::format_common_with_marker(
+        $ret =
+            DateTime::Format::Japanese::Common::_format_common_with_marker(
                 $DateTime::Format::Japanese::Common::MONTH_MARKER,
                 $dt->month,
                 $self->number_format);
     }
+	return Encode::encode($self->{output_encoding}, $ret);
 }
 
 sub format_day
@@ -182,11 +209,11 @@ sub format_day
     my $self = shift;
     my ($dt) = validate_pos(@_, @FmtBasicValidate);
 
-    return
-        DateTime::Format::Japanese::Common::format_common_with_marker(
+    return Encode::encode($self->{output_encoding},
+        DateTime::Format::Japanese::Common::_format_common_with_marker(
             $DateTime::Format::Japanese::Common::DAY_MARKER,
             $dt->day,
-            $self->number_format);
+            $self->number_format));
 }
 
 sub format_ymd
@@ -205,23 +232,25 @@ sub format_time
     my $self = shift;
     my ($dt) = validate_pos(@_, @FmtBasicValidate);
 
+	my $ret;
     if ($dt->hour_quarter > 1) {
-       return
-            $ZODIAC_HOURS[ $dt->hour - 1 ] .
-            DateTime::Format::Japanese::Common::format_number(
+       $ret = $ZODIAC_HOURS[ $dt->hour - 1 ] .
+            DateTime::Format::Japanese::Common::_format_number(
                 $dt->hour_quarter, $self->number_format) .
             $HOUR_WITH_QUARTER_MARKER;
     } else {
-        return $ZODIAC_HOURS[ $dt->hour - 1 ] .
+        $ret = $ZODIAC_HOURS[ $dt->hour - 1 ] .
             $HOUR_NO_QUARTER_MARKER;
     }
+
+	return Encode::encode($self->{output_encoding}, $ret);
 }
 
-sub fix_era_name
+sub _fix_era_name
 {
     my %args = @_;
     my $era = 
-        DateTime::Format::Japanese::Era::lookup_by_name($args{parsed}->{era_name});
+        DateTime::Calendar::Japanese::Era->lookup_by_name(name => $args{parsed}->{era_name});
 
     if (!$era) {
         return 0;
@@ -230,7 +259,7 @@ sub fix_era_name
     $args{parsed}->{era_name} = $era->id;
 }
 
-sub fix_wareki_month
+sub _fix_wareki_month
 {
     my %args = @_;
     my $w_m = delete $args{parsed}->{wareki_month};
@@ -241,7 +270,7 @@ sub fix_wareki_month
 }
     
 
-sub fix_zodiac_hour
+sub _fix_zodiac_hour
 {
     my %args = @_;
 
@@ -254,7 +283,7 @@ sub fix_zodiac_hour
     1;
 }
 
-sub fix_hour_quarter
+sub _fix_hour_quarter
 {
     my %args = @_;
     if (exists $args{parsed}->{hour_quarter} && $args{parsed}->{hour_quarter} !~ /^[0-9]$/) {
@@ -290,13 +319,13 @@ my $parse_standard = {
     constructor => [ 'DateTime::Calendar::Japanese', 'new' ],
     params      => [ qw(era_name era_year month wareki_month day zodiac_hour) ],
     preprocess  => [
-        \&DateTime::Format::Japanese::Common::normalize_utf8, ],
+        \&DateTime::Format::Japanese::Common::_normalize_utf8, ],
     postprocess => [
-        \&fix_era_name,
-        \&DateTime::Format::Japanese::Common::fix_era_year,
-        \&DateTime::Format::Japanese::Common::normalize_numbers,
-        \&fix_wareki_month,
-        \&fix_zodiac_hour,
+        \&_fix_era_name,
+        \&DateTime::Format::Japanese::Common::_fix_era_year,
+        \&DateTime::Format::Japanese::Common::_normalize_numbers,
+        \&_fix_wareki_month,
+        \&_fix_zodiac_hour,
         ]
 };
 
@@ -327,14 +356,14 @@ my $parse_standard_with_quarter = {
     constructor => [ 'DateTime::Calendar::Japanese', 'new' ],
     params      => [ qw(era_name era_year month wareki_month day zodiac_hour hour_quarter) ],
     preprocess  => [
-        \&DateTime::Format::Japanese::Common::normalize_utf8, ],
+        \&DateTime::Format::Japanese::Common::_normalize_utf8, ],
     postprocess => [
-        \&fix_era_name,
-        \&DateTime::Format::Japanese::Common::fix_era_year,
-        \&DateTime::Format::Japanese::Common::normalize_numbers,
-        \&fix_wareki_month,
-        \&fix_zodiac_hour,
-        \&fix_hour_quarter,
+        \&_fix_era_name,
+        \&DateTime::Format::Japanese::Common::_fix_era_year,
+        \&DateTime::Format::Japanese::Common::_normalize_numbers,
+        \&_fix_wareki_month,
+        \&_fix_zodiac_hour,
+        \&_fix_hour_quarter,
         ]
 };
 
@@ -454,6 +483,12 @@ in Japanese
 Create a string representation of the time (hour, minute, second) of a DateTime::Calendar::Japanese object in Japanese
 
 =head1 OPTIONS
+
+=head2 input_encoding()
+
+=head2 output_encoding()
+
+Get/Set the encoding that this module should expect to use.
 
 =head2 number_format()
 

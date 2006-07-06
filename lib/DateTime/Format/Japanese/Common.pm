@@ -1,7 +1,12 @@
+# $Id: /mirror/DateTime-Format-Japanese/lib/DateTime/Format/Japanese/Common.pm 1688 2006-07-06T10:00:51.388109Z lestrrat  $
+#
+# Copyright (c) 2006 Daisuke Maki <dmaki@cpan.org>
+# All rights reserved.
+
 package DateTime::Format::Japanese::Common;
 use strict;
 use Exporter;
-use vars qw(@ISA $VERSION %EXPORT_TAGS);
+use vars qw(@ISA %EXPORT_TAGS);
 use constant FORMAT_KANJI_WITH_UNIT  => 'FORMAT_KANJI_WITH_UNIT';
 use constant FORMAT_KANJI            => 'FORMAT_KANJI';
 use constant FORMAT_ZENKAKU          => 'FORMAT_ZENKAKU';
@@ -10,7 +15,6 @@ use constant FORMAT_ERA              => 'FORMAT_ERA';
 use constant FORMAT_GREGORIAN        => 'FORMAT_GREGORIAN';
 BEGIN
 {
-    $VERSION = '0.01';
     @ISA     = qw(Exporter);
     %EXPORT_TAGS = (
         constants => [ qw(
@@ -19,7 +23,7 @@ BEGIN
     );
     Exporter::export_ok_tags('constants');
 }
-use DateTime::Format::Japanese::Era;
+use DateTime::Calendar::Japanese::Era;
 
 BEGIN
 {
@@ -34,13 +38,19 @@ BEGIN
         $normalize_utf8_sub = sub
         {
             my %args = @_;
-            if (Encode::is_utf8($args{input})) {
-                return $args{input};
-            } else {
-                my $enc  = Encode::Guess::guess_encoding(
-                    $args{input}, qw(euc-jp shiftjis 7bit-jis)) or
-                die "Could not guess encoding for input!";
-                return Encode::decode($enc->name, $args{input});
+
+			my $self = $args{self};
+			if (ref($self) && $self->{input_encoding}) {
+				return Encode::decode($self->{input_encoding}, $args{input});
+			} else {
+	            if (Encode::is_utf8($args{input})) {
+	                return $args{input};
+	            } else {
+	                my $enc  = Encode::Guess::guess_encoding(
+	                    $args{input}, qw(euc-jp shiftjis 7bit-jis)) or
+	                die "Could not guess encoding for input!";
+	                return Encode::decode($enc->name, $args{input});
+				}
             }
         }
     } else {
@@ -54,25 +64,25 @@ BEGIN
 
     {
         no strict 'refs';
-        *euc2utf8       = $euc2utf8_sub;
-        *normalize_utf8 = $normalize_utf8_sub;
+        *_euc2utf8       = $euc2utf8_sub;
+        *_normalize_utf8 = $normalize_utf8_sub;
     }
 }
 
-sub make_utf8_re_str
+sub _make_utf8_re_str
 {
     my $euc_jp = shift;
-    my $u = euc2utf8($euc_jp);
+    my $u = _euc2utf8($euc_jp);
     my $l = length($u);
     return sprintf( '\x{%04X}' x $l, unpack('U ' x $l, $u));
 }
 
-sub make_utf8_re
+sub _make_utf8_re
 {
-    make_re(make_utf8_re_str(@_));
+    _make_re(_make_utf8_re_str(@_));
 }
 
-sub make_re
+sub _make_re
 {
     my $re = shift;
     return qr($re);
@@ -126,63 +136,63 @@ use vars qw(
     $RE_DAY_OF_WEEKS
 );
 
-{ # XXX - eh, not need to put this in different scope, but makes this stand out
-    $KANJI_TEN        = euc2utf8('½½');
-    $KANJI_ZERO       = euc2utf8('Îí');
-    $BC_MARKER        = euc2utf8('µª¸µÁ°');
-    $GREGORIAN_MARKER = euc2utf8('À¾Îñ');
-    $YEAR_MARKER      = euc2utf8('Ç¯');
-    $MONTH_MARKER     = euc2utf8('·î');
-    $DAY_MARKER       = euc2utf8('Æü');
-    $HOUR_MARKER      = euc2utf8('»þ');
-    $MINUTE_MARKER    = euc2utf8('Ê¬');
-    $SECOND_MARKER    = euc2utf8('ÉÃ');
-    $AM_MARKER        = euc2utf8('¸áÁ°');
-    $PM_MARKER        = euc2utf8('¸á¸å');
-    $TRADITIONAL_MARKER = euc2utf8('µìÎñ');
-    $DAY_OF_WEEK_SHORT_MARKER = euc2utf8('ÍË');
+{ # XXX - eh, not need to put this in different scope, but _makes this stand out
+    $KANJI_TEN        = _euc2utf8('½½');
+    $KANJI_ZERO       = _euc2utf8('Îí');
+    $BC_MARKER        = _euc2utf8('µª¸µÁ°');
+    $GREGORIAN_MARKER = _euc2utf8('À¾Îñ');
+    $YEAR_MARKER      = _euc2utf8('Ç¯');
+    $MONTH_MARKER     = _euc2utf8('·î');
+    $DAY_MARKER       = _euc2utf8('Æü');
+    $HOUR_MARKER      = _euc2utf8('»þ');
+    $MINUTE_MARKER    = _euc2utf8('Ê¬');
+    $SECOND_MARKER    = _euc2utf8('ÉÃ');
+    $AM_MARKER        = _euc2utf8('¸áÁ°');
+    $PM_MARKER        = _euc2utf8('¸á¸å');
+    $TRADITIONAL_MARKER = _euc2utf8('µìÎñ');
+    $DAY_OF_WEEK_SHORT_MARKER = _euc2utf8('ÍË');
     $DAY_OF_WEEK_MARKER = $DAY_OF_WEEK_SHORT_MARKER . $DAY_MARKER;
 
-    @ZENKAKU_NUMBERS = map{ euc2utf8($_) } qw(£° £± £² £³ £´ £µ £¶ £· £¸ £¹);
-    @KANJI_NUMBERS   = map{ euc2utf8($_) } qw(¡» °ì Æó »° »Í ¸Þ Ï» ¼· È¬ ¶å);
+    @ZENKAKU_NUMBERS = map{ _euc2utf8($_) } qw(£° £± £² £³ £´ £µ £¶ £· £¸ £¹);
+    @KANJI_NUMBERS   = map{ _euc2utf8($_) } qw(¡» °ì Æó »° »Í ¸Þ Ï» ¼· È¬ ¶å);
     %ZENKAKU2ASCII = map { ($ZENKAKU_NUMBERS[$_] => $_) } 0..$#ZENKAKU_NUMBERS;
     %KANJI2ASCII   = map { ($KANJI_NUMBERS[$_] => $_) } 0.. $#KANJI_NUMBERS;
     $KANJI2ASCII{ $KANJI_ZERO } = 0;
     %JP2ASCII = (%ZENKAKU2ASCII, %KANJI2ASCII);
 
-    @DAY_OF_WEEKS = map { euc2utf8($_) } qw( ·î ²Ð ¿å ÌÚ ¶â ÅÚ Æü );
+    @DAY_OF_WEEKS = map { _euc2utf8($_) } qw( ·î ²Ð ¿å ÌÚ ¶â ÅÚ Æü );
 
     %AMPM = (
         $AM_MARKER =>  0,
         $PM_MARKER => 1
     );
 
-    $RE_DAY_OF_WEEKS = make_re(
-        '(?:' . join( '|', map { make_utf8_re_str($_) } @DAY_OF_WEEKS ) . ')' .
-        make_utf8_re_str($DAY_OF_WEEK_SHORT_MARKER) . 
-        '(?:' . make_utf8_re_str($DAY_MARKER) . ')?');
+    $RE_DAY_OF_WEEKS = _make_re(
+        '(?:' . join( '|', map { _make_utf8_re_str($_) } @DAY_OF_WEEKS ) . ')' .
+        _make_utf8_re_str($DAY_OF_WEEK_SHORT_MARKER) . 
+        '(?:' . _make_utf8_re_str($DAY_MARKER) . ')?');
 
-    $RE_ZENKAKU_NUM = make_re( sprintf( '[%s]',
-        make_utf8_re_str( join('', @ZENKAKU_NUMBERS) ) ) );
+    $RE_ZENKAKU_NUM = _make_re( sprintf( '[%s]',
+        _make_utf8_re_str( join('', @ZENKAKU_NUMBERS) ) ) );
 
-    $RE_KANJI_NUM = make_re( sprintf( '[%s]',
-        make_utf8_re_str( join('', @KANJI_NUMBERS) ) ) );
-    $RE_ZENKAKU_NUM = make_re( sprintf( '[%s]',
-        make_utf8_re_str( join('', @ZENKAKU_NUMBERS, @KANJI_NUMBERS) ) ) );
+    $RE_KANJI_NUM = _make_re( sprintf( '[%s]',
+        _make_utf8_re_str( join('', @KANJI_NUMBERS) ) ) );
+    $RE_ZENKAKU_NUM = _make_re( sprintf( '[%s]',
+        _make_utf8_re_str( join('', @ZENKAKU_NUMBERS, @KANJI_NUMBERS) ) ) );
     $RE_JP_OR_ASCII_NUM    = qr([0-9]|$RE_ZENKAKU_NUM);
-    $RE_BC_MARKER          = make_utf8_re($BC_MARKER);
-    $RE_GREGORIAN_MARKER   = make_utf8_re($GREGORIAN_MARKER);
-    $RE_TRADITIONAL_MARKER = make_utf8_re($TRADITIONAL_MARKER);
-    $RE_AM_PM_MARKER       = make_re( join( '|',
-        make_utf8_re_str($AM_MARKER), make_utf8_re_str($PM_MARKER), '') );
-    $RE_YEAR_MARKER        = make_utf8_re($YEAR_MARKER);
-    $RE_MONTH_MARKER       = make_utf8_re($MONTH_MARKER);
-    $RE_DAY_MARKER         = make_utf8_re($DAY_MARKER);
-    $RE_HOUR_MARKER        = make_utf8_re($HOUR_MARKER);
-    $RE_MINUTE_MARKER      = make_utf8_re($MINUTE_MARKER);
-    $RE_SECOND_MARKER      = make_utf8_re($SECOND_MARKER);
-    $RE_KANJI_TEN          = make_utf8_re($KANJI_TEN);
-    $RE_KANJI_ZERO         = make_utf8_re($KANJI_ZERO);
+    $RE_BC_MARKER          = _make_utf8_re($BC_MARKER);
+    $RE_GREGORIAN_MARKER   = _make_utf8_re($GREGORIAN_MARKER);
+    $RE_TRADITIONAL_MARKER = _make_utf8_re($TRADITIONAL_MARKER);
+    $RE_AM_PM_MARKER       = _make_re( join( '|',
+        _make_utf8_re_str($AM_MARKER), _make_utf8_re_str($PM_MARKER), '') );
+    $RE_YEAR_MARKER        = _make_utf8_re($YEAR_MARKER);
+    $RE_MONTH_MARKER       = _make_utf8_re($MONTH_MARKER);
+    $RE_DAY_MARKER         = _make_utf8_re($DAY_MARKER);
+    $RE_HOUR_MARKER        = _make_utf8_re($HOUR_MARKER);
+    $RE_MINUTE_MARKER      = _make_utf8_re($MINUTE_MARKER);
+    $RE_SECOND_MARKER      = _make_utf8_re($SECOND_MARKER);
+    $RE_KANJI_TEN          = _make_utf8_re($KANJI_TEN);
+    $RE_KANJI_ZERO         = _make_utf8_re($KANJI_ZERO);
 
     $RE_TWO_DIGITS         = qr(
         ${RE_KANJI_NUM}?${RE_KANJI_TEN}?${RE_KANJI_NUM} |
@@ -191,11 +201,10 @@ use vars qw(
     )x;
     
     $RE_GREGORIAN_YEAR     = qr(-?$RE_JP_OR_ASCII_NUM+);
-    $RE_ERA_YEAR_SPECIAL   = make_utf8_re('¸µ');
+    $RE_ERA_YEAR_SPECIAL   = _make_utf8_re('¸µ');
     $RE_ERA_YEAR           = qr($RE_ERA_YEAR_SPECIAL|$RE_TWO_DIGITS);
-    $RE_ERA_NAME           = make_re(join( "|",
-        map { make_utf8_re_str($_)
-    } keys %DateTime::Format::Japanese::Era::ERA_NAME2ID) );
+    $RE_ERA_NAME           = _make_re(join( "|",
+        map { $_->name } DateTime::Calendar::Japanese::Era->registered) );
 }
 
 my %valid_number_format = (
@@ -205,17 +214,17 @@ my %valid_number_format = (
     FORMAT_ROMAN()           => 1,
 );
 
-sub valid_number_format  { exists $valid_number_format{$_[0]} }
+sub _valid_number_format  { exists $valid_number_format{$_[0]} }
 
 my %valid_year_format = (
     FORMAT_ERA()       => 1,
     FORMAT_GREGORIAN() => 1
 );
 
-sub valid_year_format { exists $valid_year_format{$_[0]} }
+sub _valid_year_format { exists $valid_year_format{$_[0]} }
 
 # Era year 1 can be written as "¸µÇ¯"
-sub fix_era_year
+sub _fix_era_year
 {
     my %args = @_;
     if ($args{parsed}->{era_year} =~ /$RE_ERA_YEAR_SPECIAL/) {
@@ -224,7 +233,7 @@ sub fix_era_year
     return 1;
 }
 
-sub normalize_numbers
+sub _normalize_numbers
 {
     my %args = @_;
     foreach my $key qw(year month day era_year hour minute second) {
@@ -248,7 +257,7 @@ sub normalize_numbers
     return 1;
 }
 
-sub fix_am_pm
+sub _fix_am_pm
 {
     my %args = @_;
     if (my $am_pm = delete $args{parsed}->{am_pm}) {
@@ -269,7 +278,7 @@ sub fix_am_pm
     return 1;
 }
 
-sub format_number
+sub _format_number
 {
     my($number, $number_format) = @_;
 
@@ -298,7 +307,7 @@ sub format_number
     return $number;
 }
 
-sub format_era
+sub _format_era
 {
     my($dt, $number_format) = @_;
 
@@ -309,17 +318,36 @@ sub format_era
     }
 
     my $era_year = ($dt->year - $era->start->year) + 1; 
-    my $era_name = DateTime::Format::Japanese::Era::lookup_name_by_id($era->id);
+    my $era_name = $era->name;
+
 
     return $era_name .
-        format_number($era_year, $number_format) .
+        _format_number($era_year, $number_format) .
         $YEAR_MARKER;
 }
 
-sub format_common_with_marker
+sub _format_common_with_marker
 {
     my($marker, $number, $number_format) = @_;
-    return format_number($number, $number_format) . $marker;
+    return _format_number($number, $number_format) . $marker;
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+DateTime::Format::Japanese::Common - Utilities To Format Japanese Dates
+
+=head1 SYNOPSIS
+
+  use DateTime::Format::Japanese::Common;
+  # internal use only
+
+=head1 AUTHOR
+
+Copyright (c) 2004-2006 Daisuke Maki E<lt>daisuke@cpan.orgE<gt>. 
+All rights reserved.
+
+=cut

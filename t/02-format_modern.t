@@ -51,7 +51,7 @@ my @params = (
 
 my($dt, $str, $fmt);
 foreach my $param (@params) {
-    $fmt = DateTime::Format::Japanese->new();
+    $fmt = DateTime::Format::Japanese->new(input_encoding => 'euc-jp', output_encoding => 'euc-jp');
     
     while (my($expected, $args) = each %{$param->[1]}) {
         $fmt->number_format($args->[0]);
@@ -60,9 +60,9 @@ foreach my $param (@params) {
         $fmt->with_bc_marker($args->[3]);
         $fmt->with_ampm_marker($args->[4]);
         $fmt->with_day_of_week($args->[5]);
-        $str = $fmt->format_datetime($param->[0]);
+        $str = eval{ $fmt->format_datetime($param->[0]) };
 
-        is(encode('euc-jp', $str), $expected, "Test " . $param->[0]->datetime . " = " . $expected);
+        is($str, $expected, "Test " . $param->[0]->datetime . " = " . $expected . ($@ ? " $@" : ''));
 
         $dt = $fmt->parse_datetime($str);
         is($param->[0]->compare($dt), 0, "Test parsing back result");

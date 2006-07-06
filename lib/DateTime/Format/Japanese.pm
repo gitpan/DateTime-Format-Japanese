@@ -1,13 +1,19 @@
+# $Id: /mirror/DateTime-Format-Japanese/lib/DateTime/Format/Japanese.pm 1688 2006-07-06T10:00:51.388109Z lestrrat  $
+#
+# Copyright (c) 2006 Daisuke Maki <dmaki@cpan.org>
+# All rights reserved.
+
 package DateTime::Format::Japanese;
 use strict;
 use Params::Validate qw( validate validate_pos SCALAR BOOLEAN );
+use Encode();
 use Exporter;
 use vars qw(@ISA $VERSION %EXPORT_TAGS);
 use DateTime::Format::Japanese::Common qw(:constants);
-use DateTime::Format::Japanese::Era;
+use DateTime::Calendar::Japanese::Era;
 BEGIN
 {
-    $VERSION     = '0.01';
+    $VERSION     = '0.03';
     @ISA         = qw(Exporter);
     %EXPORT_TAGS = (
         constants => [ qw(
@@ -20,6 +26,8 @@ BEGIN
 # XXX - OBJECT DEFINITION
 
 my %NewValidate = (
+	output_encoding => { default => 'utf8' },
+	input_encoding => { default => 'Guess' },
     number_format => { 
         type    => SCALAR,
         default => FORMAT_KANJI
@@ -53,6 +61,26 @@ sub new
     my $self  = bless \%hash, $class;
 }
 
+sub input_encoding
+{
+	my $self = shift;
+	my $ret = $self->{input_encoding};
+	if (@_) {
+		$self->{input_encoding} = shift;
+	}
+	return $ret;
+}
+
+sub output_encoding
+{
+	my $self = shift;
+	my $ret = $self->{output_encoding};
+	if (@_) {
+		$self->{output_encoding} = shift;
+	}
+	return $ret;
+}
+
 sub number_format
 {
     my $self    = shift;
@@ -61,7 +89,7 @@ sub number_format
         my($val) = validate_pos(@_, {
             type => SCALAR,
             callbacks => {
-                'is valid number_format' => \&DateTime::Format::Japanese::Common::valid_number_format
+                'is valid number_format' => \&DateTime::Format::Japanese::Common::_valid_number_format
             }
         });
         $self->{number_format} = $val;
@@ -77,7 +105,7 @@ sub year_format
         my($val) = validate_pos(@_, {
             type => SCALAR,
             callbacks => {
-                'is valid year_format' => \&DateTime::Format::Japanese::Common::valid_year_format
+                'is valid year_format' => \&DateTime::Format::Japanese::Common::_valid_year_format
             }
         });
         $self->{year_format} = $val;
@@ -144,7 +172,7 @@ sub format_year
 
     if ($self->year_format eq DateTime::Format::Japanese::FORMAT_ERA()) {
         $year_section = 
-            DateTime::Format::Japanese::Common::format_era($dt, $self->number_format);
+            DateTime::Format::Japanese::Common::_format_era($dt, $self->number_format);
     } else {
         my $year = $dt->year;
         if ($year < 0 && $self->with_bc_marker) {
@@ -162,7 +190,7 @@ sub format_year
         }
 
         $year_section .=
-            DateTime::Format::Japanese::Common::format_number($year, $self->number_format);
+            DateTime::Format::Japanese::Common::_format_number($year, $self->number_format);
         $year_section .= $DateTime::Format::Japanese::Common::YEAR_MARKER;
 
         if ($restore) {
@@ -170,7 +198,7 @@ sub format_year
         }
     }
 
-    return $year_section;
+    return Encode::encode($self->{output_encoding}, $year_section);
 }
 
 sub format_month
@@ -178,11 +206,11 @@ sub format_month
     my $self = shift;
     my ($dt) = validate_pos(@_, @FmtBasicValidate);
 
-    return
-        DateTime::Format::Japanese::Common::format_common_with_marker(
+    return Encode::encode($self->{output_encoding},
+        DateTime::Format::Japanese::Common::_format_common_with_marker(
             $DateTime::Format::Japanese::Common::MONTH_MARKER,
             $dt->month,
-            $self->number_format);
+            $self->number_format));
 }
 
 sub format_day
@@ -190,11 +218,11 @@ sub format_day
     my $self = shift;
     my ($dt) = validate_pos(@_, @FmtBasicValidate);
 
-    return
-        DateTime::Format::Japanese::Common::format_common_with_marker(
+    return Encode::encode($self->{output_encoding},
+        DateTime::Format::Japanese::Common::_format_common_with_marker(
             $DateTime::Format::Japanese::Common::DAY_MARKER,
             $dt->day,
-            $self->number_format);
+            $self->number_format));
 }
 
 sub format_hour
@@ -212,12 +240,12 @@ sub format_hour
             $DateTime::Format::Japanese::Common::PM_MARKER;
     }
 
-    return
+    return Encode::encode($self->{output_encoding},
         $ampm . 
-        DateTime::Format::Japanese::Common::format_common_with_marker(
+        DateTime::Format::Japanese::Common::_format_common_with_marker(
             $DateTime::Format::Japanese::Common::HOUR_MARKER,
             $hour,
-            $self->number_format);
+            $self->number_format));
 }
 
 sub format_minute
@@ -225,11 +253,11 @@ sub format_minute
     my $self = shift;
     my ($dt) = validate_pos(@_, @FmtBasicValidate);
 
-    return
-        DateTime::Format::Japanese::Common::format_common_with_marker(
+    return Encode::encode($self->{output_encoding},
+        DateTime::Format::Japanese::Common::_format_common_with_marker(
             $DateTime::Format::Japanese::Common::MINUTE_MARKER,
             $dt->minute,
-            $self->number_format);
+            $self->number_format));
 }
 
 sub format_second
@@ -237,11 +265,11 @@ sub format_second
     my $self = shift;
     my ($dt) = validate_pos(@_, @FmtBasicValidate);
 
-    return
-        DateTime::Format::Japanese::Common::format_common_with_marker(
+    return Encode::encode($self->{output_encoding},
+        DateTime::Format::Japanese::Common::_format_common_with_marker(
             $DateTime::Format::Japanese::Common::SECOND_MARKER,
             $dt->second,
-            $self->number_format);
+            $self->number_format));
 }
 
 sub format_ymd
@@ -249,6 +277,8 @@ sub format_ymd
     my $self = shift;
     my ($dt) = validate_pos(@_, @FmtBasicValidate);
 
+	# format_year, format_month, format_day already takes care of
+	# encoding, so don't re-encode
     return
         $self->format_year($dt) .
         $self->format_month($dt) .
@@ -260,6 +290,8 @@ sub format_time
     my $self = shift;
     my ($dt) = validate_pos(@_, @FmtBasicValidate);
 
+	# format_hour, format_minute, format_second already takes care of
+	# encoding, so don't re-encode
     return
         $self->format_hour($dt) .
         $self->format_minute($dt) .
@@ -271,9 +303,9 @@ sub format_day_of_week
     my $self = shift;
     my ($dt) = validate_pos(@_, @FmtBasicValidate);
 
-    return
+    return Encode::encode($self->{output_encoding},
         @DateTime::Format::Japanese::Common::DAY_OF_WEEKS[ $dt->day_of_week - 1 ] .
-        $DateTime::Format::Japanese::Common::DAY_OF_WEEK_MARKER;
+        $DateTime::Format::Japanese::Common::DAY_OF_WEEK_MARKER);
 }
 
 sub format_datetime
@@ -286,6 +318,9 @@ sub format_datetime
     if ($self->with_day_of_week) {
         $rv .= $self->format_day_of_week($dt);
     }
+
+	# format_ymd, format_time, format_day_of_week have already
+	# fixed our encoding, so don't touch.
     return $rv;
 }
 
@@ -324,11 +359,11 @@ my $parse_gregorian = {
     >x,
     params      => [ qw(year month day am_pm hour minute second) ],
     preprocess  => [
-        \&DateTime::Format::Japanese::Common::normalize_utf8, ],
+        \&DateTime::Format::Japanese::Common::_normalize_utf8, ],
     postprocess => [
-        \&DateTime::Format::Japanese::Common::normalize_numbers,
-        \&DateTime::Format::Japanese::Common::fix_am_pm,
-        \&fix_year ]
+        \&DateTime::Format::Japanese::Common::_normalize_numbers,
+        \&DateTime::Format::Japanese::Common::_fix_am_pm,
+        \&_fix_year ]
 };
 
 my $parse_gregorian_bc = {
@@ -348,11 +383,11 @@ my $parse_gregorian_bc = {
     >x,
     params      => [ qw(is_bc year month day am_pm hour minute second) ],
     preprocess  => [
-        \&DateTime::Format::Japanese::Common::normalize_utf8, ],
+        \&DateTime::Format::Japanese::Common::_normalize_utf8, ],
     postprocess => [
-        \&DateTime::Format::Japanese::Common::normalize_numbers,
-        \&DateTime::Format::Japanese::Common::fix_am_pm,
-        \&fix_year ]
+        \&DateTime::Format::Japanese::Common::_normalize_numbers,
+        \&DateTime::Format::Japanese::Common::_fix_am_pm,
+        \&_fix_year ]
 };
 
 my $parse_with_era  = {
@@ -371,15 +406,15 @@ my $parse_with_era  = {
     |x,
     params      => [ qw(era_name era_year month day am_pm hour minute second) ],
     preprocess  => [
-        \&DateTime::Format::Japanese::Common::normalize_utf8, ],
+        \&DateTime::Format::Japanese::Common::_normalize_utf8, ],
     postprocess => [
-        \&DateTime::Format::Japanese::Common::fix_era_year,
-        \&DateTime::Format::Japanese::Common::normalize_numbers,
-        \&DateTime::Format::Japanese::Common::fix_am_pm,
-        \&era2year_modern ]
+        \&DateTime::Format::Japanese::Common::_fix_era_year,
+        \&DateTime::Format::Japanese::Common::_normalize_numbers,
+        \&DateTime::Format::Japanese::Common::_fix_am_pm,
+        \&_era2year_modern ]
 };
 
-sub fix_year
+sub _fix_year
 {
     my %args = @_;
     if (delete $args{parsed}->{is_bc}) {
@@ -388,7 +423,7 @@ sub fix_year
     1;
 }
 
-sub era2year_modern
+sub _era2year_modern
 {
     my %args = @_;
 
@@ -399,7 +434,7 @@ sub era2year_modern
         return 0;
     }
 
-    my $era = DateTime::Format::Japanese::Era::lookup_by_name($era_name);
+    my $era = DateTime::Calendar::Japanese::Era->lookup_by_name(name => $era_name);
 
     my $g_year = $era->start->year + $era_year - 1;
 
@@ -463,7 +498,9 @@ DateTime::Format::Japanese - A Japanese DateTime Formatter
     with_gregorian_marker => 1,
     with_bc_marker        => 1,
     with_ampm_marker      => 1,
-    with_day_of_week      => 1
+    with_day_of_week      => 1,
+    input_encoding        => $enc_name,
+    output_encoding       => $enc_name
   );
 
   my $str = $fmt->format_datetime($dt);
@@ -496,10 +533,13 @@ You may optionally pass any of the following parameters:
   with_gregorian_marker - use gregorian marker (default: 0)
   with_bc_marker        - use B.C. marker (default: 0)
   with_am_marker        - use A.M/P.M marker (default: 0)
+  input_encoding        - encoding of input strings for parsing (default: Guess)
+  output_encoding       - encoding of output strings for formatting (default: euc-jp)
 
 Please note that all of the above parameters only take effect for
-I<formatting>, and not I<parsing>. Parsing is done in a way such
-that it accepts any of the known formats that this module can produce.
+I<formatting>, and not I<parsing>, except for input_encoding. Parsing
+is done in a way such that it accepts any of the known formats that
+this module can produce.
 
 =head2 $fmt-E<gt>parse_datetime($string)
 
@@ -520,7 +560,7 @@ This method can be called as a class function as well.
   my $dt = DateTime::Format::Japanese->parse_datetime($string);
   # or
   my $fmt = DateTime::Format::Japanese->new();
-  my $fmt->parse_daettime($string);
+  my $fmt->parse_datetime($string);
 
 =head1 FORMATTING METHODS
 
@@ -575,6 +615,12 @@ Create a string representation of the minute of a DateTime object in Japanese
 Create a string representation of the second of a DateTime object in Japanese
 
 =head1 OPTIONS
+
+=head2 input_encoding()
+
+=head2 output_encoding()
+
+Get/Set the encoding that this module should expect to use.
 
 =head2 number_format()
 
@@ -633,6 +679,19 @@ notation is swictched to 1-12 from 1-23
 
 Get/Set the option to include day of week.
 
+=head1 ENCODING
+
+As of version 0.02, DateTime::Format::Japanese can handle arbitrary Japanese
+encoding for both input and output.
+
+By default, input_encoding is set to 'Guess' and uses L<Encode::Guess>.
+However, this method is often not adequate to handle Japanese encodings,
+as there are many ambiguities between any two encoding. In cases where
+Encode::Guess could not guess the encoding being used, it will croak
+and emit an error.
+
+Therefore it is always recommended that you set the input_encoding.
+
 =head1 CAVEATS
 
 =head2 Day Of Week
@@ -654,6 +713,7 @@ of the limit in the range of the fields.
 
 =head1 AUTHOR
 
-Copyright (c) 2004 Daisuke Maki E<lt>daisuke@cpan.orgE<gt>. All rights reserved.
+Copyright (c) 2004-2006 Daisuke Maki E<lt>daisuke@cpan.orgE<gt>. 
+All rights reserved.
 
 =cut

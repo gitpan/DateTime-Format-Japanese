@@ -1,63 +1,31 @@
+# $Id: /mirror/DateTime-Format-Japanese/Build.PL 1688 2006-07-06T10:00:51.388109Z lestrrat  $
+#
+# Copyright (c) 2006 Daisuke Maki <dmaki@cpan.org>
+# All rights reserved.
+
 use strict;
 use Module::Build;
-
-if ($] < 5.007) {
-    print 
-        "  This module requires Encode.pm, which is only available for\n",
-        "  perl >= 5.7. You have perl $]. Sorry.\n\n",
-        "  (Patches to make it work on perl <= 5.6 are welcome!)\n";
-    exit 0;
-}
 
 my %requires = (
     'DateTime'                  => 0,
     'DateTime::Format::Builder' => 0,
-    'DateTime::Calendar::Japanese::Era' => '0.04',
+    'DateTime::Calendar::Japanese::Era' => '0.07',
+    'DateTime::Calendar::Japanese' => '0.05',
     'Encode'                    => 0,
     'Params::Validate'          => 0,
-    'perl'                      => '5.007',
 );
-
-my $do_trad = Module::Build->y_n(
-    "  Would you like to install DateTime::Format::Japanese::Traditional to\n" .
-    "  process traditional Japanese dates and DateTime::Calendar::Japanese?\n" .
-    "\n" .
-    "  Note that if you only plan to deal with modern Japanese dates (which\n" .
-    "  are based on the Gregorian calendar) you do NOT need this module.\n" .
-    "  Installing this module will add a significant amount of dependencies to\n" .
-    "  install in your system if you don't already have\n" .
-    "  DateTime::Calendar::Japanese installed.\n\n" .
-    "  Install DateTime::Fromat::Japanese::Traditional?",
-    "n"
-);
-
-if ($do_trad) {
-    print "Adding DateTime::Calendar::Japanese into dependencies...\n";
-    $requires{ 'DateTime::Calendar::Japanese' } = '0.05';
-}
 
 my $build = Module::Build->new(
     module_name => 'DateTime::Format::Japanese',
     dist_name => 'DateTime-Format-Japanese',
+    dist_version_from => 'lib/DateTime/Format/Japanese.pm',
     license => 'perl',
     requires => \%requires,
     build_requires => {
         'Test::More' => 0
     },
-    sign => 1,
-    create_makefile_pl => 'passthrough'
+    create_readme => 1,
+    create_makefile_pl => 'traditional',
 );
-
-# if we aren't installing DT::F::Japanese::Traditional, then we need
-# to strip out the module and the traditional tests
-if (! $do_trad) {
-    my $pm_files = $build->find_pm_files;
-    delete $pm_files->{ 'lib/DateTime/Format/Japanese/Traditional.pm' };
-    $build->pm_files($pm_files);
-    
-    my $tests = $build->test_files;
-    my @newtests = grep { !/traditional/ } @$tests;
-    $build->test_files(@newtests);
-}
 
 $build->create_build_script;

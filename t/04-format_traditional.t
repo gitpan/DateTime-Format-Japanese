@@ -71,7 +71,10 @@ my @params = (
 
 my($dt, $str, $fmt);
 foreach my $param (@params) {
-    $fmt = DateTime::Format::Japanese::Traditional->new();
+    $fmt = DateTime::Format::Japanese::Traditional->new(
+		input_encoding => 'euc-jp',
+		output_encoding => 'euc-jp'
+	);
     
     while (my($expected, $args) = each %{$param->[1]}) {
         $fmt->number_format($args->[0]);
@@ -79,7 +82,7 @@ foreach my $param (@params) {
         $fmt->with_traditional_marker($args->[2]);
         $str = $fmt->format_datetime($param->[0]);
 
-        is(encode('euc-jp', $str), $expected, "Test $expected");
+        is($str, $expected, "Test $expected");
 
         $dt = $fmt->parse_datetime($str);
 

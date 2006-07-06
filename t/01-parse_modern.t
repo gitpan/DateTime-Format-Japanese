@@ -1,6 +1,7 @@
 #!perl
 use strict;
-use Test::More (tests => 61);
+use Test::More (tests => 121);
+use Encode;
 BEGIN
 {
     use_ok("DateTime::Format::Japanese");
@@ -130,12 +131,24 @@ my @params = (
 );
 
 my $dt;
+my $format = DateTime::Format::Japanese->new(input_encoding => 'euc-jp');
 foreach my $param (@params) {
-    $dt = eval { DateTime::Format::Japanese->parse_datetime($param->[0]) };
+    $dt = eval { $format->parse_datetime($param->[0]) };
     ok($dt);
     SKIP:{
         skip("parse_datetime raised exception or didn't return a DateTime object: $@", 1) if !$dt;
         is( $dt->compare($param->[1]), 0, "Test parse_datetime($param->[0]) = " . $param->[1]->datetime);
+    }
+}
+
+$format->input_encoding('shiftjis');
+foreach my $param (@params) {
+	$param->[0] = Encode::encode('shiftjis', Encode::decode('euc-jp', $param->[0]));
+    $dt = eval { $format->parse_datetime($param->[0]) };
+    ok($dt);
+    SKIP:{
+        skip("parse_datetime raised exception or didn't return a DateTime object: $@", 1) if !$dt;
+        is( $dt->compare($param->[1]), 0, "Test parse_datetime($dt) = " . $param->[1]->datetime);
     }
 }
 

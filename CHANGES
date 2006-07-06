@@ -1,7 +1,19 @@
 Changes
 =======
 
-0.01 13 Feb 2004
+0.03 - 06 Jul 2006
+  - Require DateTime::Calendar::Japanese::Era 0.07
+  - Remove DateTime::Format::Japanese::Era (the functionality has
+    move to DateTime::Calendar::Japanese::Era)
+  - Add POD Tests
+  - Installing ::Traditional is no longer an option. If this is annoying,
+    I'll create a separate distro with just Traditional
+
+0.02
+  - This version was never released.
+  - Allow user to specify input and output encoding
+
+0.01
   - Be more explicit about requiring perl >= 5.7 in Build.PL
     (reported via CPAN Testers "Barbie")
   - Doc tweaks
