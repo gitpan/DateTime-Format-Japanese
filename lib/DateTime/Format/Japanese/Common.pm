@@ -1,10 +1,9 @@
-# $Id: /mirror/DateTime-Format-Japanese/lib/DateTime/Format/Japanese/Common.pm 1688 2006-07-06T10:00:51.388109Z lestrrat  $
-#
-# Copyright (c) 2006 Daisuke Maki <dmaki@cpan.org>
-# All rights reserved.
+# $Id: /mirror/datetime/DateTime-Format-Japanese/trunk/lib/DateTime/Format/Japanese/Common.pm 69499 2008-08-24T16:17:57.045540Z lestrrat  $
 
 package DateTime::Format::Japanese::Common;
 use strict;
+use warnings;
+use utf8;
 use Exporter;
 use vars qw(@ISA %EXPORT_TAGS);
 use constant FORMAT_KANJI_WITH_UNIT  => 'FORMAT_KANJI_WITH_UNIT';
@@ -24,55 +23,40 @@ BEGIN
     Exporter::export_ok_tags('constants');
 }
 use DateTime::Calendar::Japanese::Era;
+use Encode ();
+use Encode::Guess ();
 
 BEGIN
 {
     my($euc2utf8_sub, $normalize_utf8_sub);
 
-    if ($] >= 5.007) {
-        require Encode;
-        require Encode::Guess;
-        $euc2utf8_sub = sub {
-            Encode::is_utf8($_[0]) ? $_[0] : Encode::decode('euc-jp', $_[0]);
-        };
-        $normalize_utf8_sub = sub
-        {
-            my %args = @_;
+    $normalize_utf8_sub = sub {
+        my %args = @_;
 
-			my $self = $args{self};
-			if (ref($self) && $self->{input_encoding}) {
-				return Encode::decode($self->{input_encoding}, $args{input});
-			} else {
-	            if (Encode::is_utf8($args{input})) {
-	                return $args{input};
-	            } else {
-	                my $enc  = Encode::Guess::guess_encoding(
-	                    $args{input}, qw(euc-jp shiftjis 7bit-jis)) or
-	                die "Could not guess encoding for input!";
-	                return Encode::decode($enc->name, $args{input});
-				}
-            }
+        my $self = $args{self};
+        if (ref($self) && $self->{input_encoding} ne 'Guess') {
+            return Encode::decode($self->{input_encoding}, $args{input});
+        } else {
+            if (Encode::is_utf8($args{input})) {
+                return $args{input};
+            } else {
+                my $enc  = Encode::Guess::guess_encoding(
+                    $args{input}, qw(euc-jp shiftjis 7bit-jis)) or
+                die "Could not guess encoding for input!";
+                return Encode::decode($enc->name, $args{input});
+			}
         }
-    } else {
-        require Jcode;
-        # Jcode does the guessing, so we just use the same sub for both
-        $normalize_utf8_sub = sub {
-            Jcode->new($_[0])->utf8;
-        };
-        $euc2utf8_sub = $normalize_utf8_sub;
-    }
+    };
 
     {
         no strict 'refs';
-        *_euc2utf8       = $euc2utf8_sub;
         *_normalize_utf8 = $normalize_utf8_sub;
     }
 }
 
 sub _make_utf8_re_str
 {
-    my $euc_jp = shift;
-    my $u = _euc2utf8($euc_jp);
+    my $u = shift;
     my $l = length($u);
     return sprintf( '\x{%04X}' x $l, unpack('U ' x $l, $u));
 }
@@ -137,30 +121,30 @@ use vars qw(
 );
 
 { # XXX - eh, not need to put this in different scope, but _makes this stand out
-    $KANJI_TEN        = _euc2utf8('½½');
-    $KANJI_ZERO       = _euc2utf8('Îí');
-    $BC_MARKER        = _euc2utf8('µª¸µÁ°');
-    $GREGORIAN_MARKER = _euc2utf8('À¾Îñ');
-    $YEAR_MARKER      = _euc2utf8('Ç¯');
-    $MONTH_MARKER     = _euc2utf8('·î');
-    $DAY_MARKER       = _euc2utf8('Æü');
-    $HOUR_MARKER      = _euc2utf8('»þ');
-    $MINUTE_MARKER    = _euc2utf8('Ê¬');
-    $SECOND_MARKER    = _euc2utf8('ÉÃ');
-    $AM_MARKER        = _euc2utf8('¸áÁ°');
-    $PM_MARKER        = _euc2utf8('¸á¸å');
-    $TRADITIONAL_MARKER = _euc2utf8('µìÎñ');
-    $DAY_OF_WEEK_SHORT_MARKER = _euc2utf8('ÍË');
+    $KANJI_TEN        = 'å';
+    $KANJI_ZERO       = 'é›¶';
+    $BC_MARKER        = 'ç´€å…ƒå‰';
+    $GREGORIAN_MARKER = 'è¥¿æš¦';
+    $YEAR_MARKER      = 'å¹´';
+    $MONTH_MARKER     = 'æœˆ';
+    $DAY_MARKER       = 'æ—¥';
+    $HOUR_MARKER      = 'æ™‚';
+    $MINUTE_MARKER    = 'åˆ†';
+    $SECOND_MARKER    = 'ç§’';
+    $AM_MARKER        = 'åˆå‰';
+    $PM_MARKER        = 'åˆå¾Œ';
+    $TRADITIONAL_MARKER = 'æ—§æš¦';
+    $DAY_OF_WEEK_SHORT_MARKER = 'æ›œ';
     $DAY_OF_WEEK_MARKER = $DAY_OF_WEEK_SHORT_MARKER . $DAY_MARKER;
 
-    @ZENKAKU_NUMBERS = map{ _euc2utf8($_) } qw(£° £± £² £³ £´ £µ £¶ £· £¸ £¹);
-    @KANJI_NUMBERS   = map{ _euc2utf8($_) } qw(¡» °ì Æó »° »Í ¸Þ Ï» ¼· È¬ ¶å);
+    @ZENKAKU_NUMBERS = qw(ï¼ ï¼‘ ï¼’ ï¼“ ï¼” ï¼• ï¼– ï¼— ï¼˜ ï¼™);
+    @KANJI_NUMBERS   = qw(ã€‡ ä¸€ äºŒ ä¸‰ å›› äº” å…­ ä¸ƒ å…« ä¹);
     %ZENKAKU2ASCII = map { ($ZENKAKU_NUMBERS[$_] => $_) } 0..$#ZENKAKU_NUMBERS;
     %KANJI2ASCII   = map { ($KANJI_NUMBERS[$_] => $_) } 0.. $#KANJI_NUMBERS;
     $KANJI2ASCII{ $KANJI_ZERO } = 0;
     %JP2ASCII = (%ZENKAKU2ASCII, %KANJI2ASCII);
 
-    @DAY_OF_WEEKS = map { _euc2utf8($_) } qw( ·î ²Ð ¿å ÌÚ ¶â ÅÚ Æü );
+    @DAY_OF_WEEKS = qw( æœˆ ç« æ°´ æœ¨ é‡‘ åœŸ æ—¥ );
 
     %AMPM = (
         $AM_MARKER =>  0,
@@ -201,7 +185,7 @@ use vars qw(
     )x;
     
     $RE_GREGORIAN_YEAR     = qr(-?$RE_JP_OR_ASCII_NUM+);
-    $RE_ERA_YEAR_SPECIAL   = _make_utf8_re('¸µ');
+    $RE_ERA_YEAR_SPECIAL   = _make_utf8_re('å…ƒ');
     $RE_ERA_YEAR           = qr($RE_ERA_YEAR_SPECIAL|$RE_TWO_DIGITS);
     $RE_ERA_NAME           = _make_re(join( "|",
         map { $_->name } DateTime::Calendar::Japanese::Era->registered) );
@@ -223,7 +207,7 @@ my %valid_year_format = (
 
 sub _valid_year_format { exists $valid_year_format{$_[0]} }
 
-# Era year 1 can be written as "¸µÇ¯"
+# Era year 1 can be written as "å…ƒå¹´"
 sub _fix_era_year
 {
     my %args = @_;
@@ -318,8 +302,7 @@ sub _format_era
     }
 
     my $era_year = ($dt->year - $era->start->year) + 1; 
-    my $era_name = $era->name;
-
+    my $era_name = Encode::decode_utf8($era->name);
 
     return $era_name .
         _format_number($era_year, $number_format) .
@@ -347,7 +330,6 @@ DateTime::Format::Japanese::Common - Utilities To Format Japanese Dates
 
 =head1 AUTHOR
 
-Copyright (c) 2004-2006 Daisuke Maki E<lt>daisuke@cpan.orgE<gt>. 
-All rights reserved.
+(c) 2004-2008 Daisuke Maki E<lt>daisuke@endeworks.jp<gt>. 
 
 =cut

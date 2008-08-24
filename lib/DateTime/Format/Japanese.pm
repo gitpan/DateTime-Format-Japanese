@@ -1,10 +1,9 @@
-# $Id: /mirror/DateTime-Format-Japanese/lib/DateTime/Format/Japanese.pm 1688 2006-07-06T10:00:51.388109Z lestrrat  $
-#
-# Copyright (c) 2006 Daisuke Maki <dmaki@cpan.org>
-# All rights reserved.
+# $Id: /mirror/datetime/DateTime-Format-Japanese/trunk/lib/DateTime/Format/Japanese.pm 69499 2008-08-24T16:17:57.045540Z lestrrat  $
 
 package DateTime::Format::Japanese;
 use strict;
+use warnings;
+
 use Params::Validate qw( validate validate_pos SCALAR BOOLEAN );
 use Encode();
 use Exporter;
@@ -13,7 +12,7 @@ use DateTime::Format::Japanese::Common qw(:constants);
 use DateTime::Calendar::Japanese::Era;
 BEGIN
 {
-    $VERSION     = '0.03';
+    $VERSION     = '0.04000';
     @ISA         = qw(Exporter);
     %EXPORT_TAGS = (
         constants => [ qw(
@@ -27,7 +26,7 @@ BEGIN
 
 my %NewValidate = (
 	output_encoding => { default => 'utf8' },
-	input_encoding => { default => 'Guess' },
+	input_encoding => { default => 'utf8' },
     number_format => { 
         type    => SCALAR,
         default => FORMAT_KANJI
@@ -504,21 +503,18 @@ DateTime::Format::Japanese - A Japanese DateTime Formatter
   );
 
   my $str = $fmt->format_datetime($dt);
-  my $dt  = $fmt->parse_datetime("Ê¿À®£±£¶Ç¯£±·î£²£·Æü¸áÁ°£µ»ş£³£°Ê¬");
+  my $dt  = $fmt->parse_datetime("å¹³æˆï¼‘ï¼–å¹´ï¼‘æœˆï¼’ï¼—æ—¥åˆå‰ï¼•æ™‚ï¼“ï¼åˆ†");
     
 =head1 DESCRIPTION
 
 This module implements a DateTime::Format module that can read Japanese
 date notations and create a DateTime object, and vice versa.
 
-  XXX WARNING WARNING WARNING XXX
+All formatting methods will return a decoded utf-8 string, unless otherwise
+specified explicitly via the output_encoding parameter.
 
-  Currently DateTime::Format::Japanese only supports Perl 5.7 and up.
-  This is because I'm ignorant in the ways of making robust regular
-  expressions in Perls <= 5.6.x with Jcode. If anybody can contribute to
-  this, I would much appreciate it
-
-  XXX WARNING WARNING WARNING XXX
+All parsing methods expect a decoded utf-8 string, unless otherwise specified
+explicitly via the input_encoding parameter
 
 =head1 METHODS
 
@@ -533,8 +529,8 @@ You may optionally pass any of the following parameters:
   with_gregorian_marker - use gregorian marker (default: 0)
   with_bc_marker        - use B.C. marker (default: 0)
   with_am_marker        - use A.M/P.M marker (default: 0)
-  input_encoding        - encoding of input strings for parsing (default: Guess)
-  output_encoding       - encoding of output strings for formatting (default: euc-jp)
+  input_encoding        - encoding of input strings for parsing (default: utf8)
+  output_encoding       - encoding of output strings for formatting (default: utf8)
 
 Please note that all of the above parameters only take effect for
 I<formatting>, and not I<parsing>, except for input_encoding. Parsing
@@ -545,9 +541,9 @@ this module can produce.
 
 This function will parse a Japanese date/time string and convert it to a
 DateTime object. If the parsing is unsuccessful, it will croak.
-Note that it will try to auto-detect whatever encoding you're using via
-Encode::Guess, so you should be safe to pass any of UTF-8, euc-jp, 
-shift-jis, and iso-2022-jp encoded strings.
+
+Note that if you didn't provide a input_encoding parameter, the given
+string is assumed to be decoded utf-8.
 
 This function should be able to parse almost all of the common Japanese
 date notations, whether they are written using ascii numerals, double byte
@@ -664,7 +660,7 @@ Formats the year using the Gregorian notation
 
 =head2 with_gregorian_marker()
 
-Get/Set the option to include the gregorian calendar marker ("À¾Îñ")
+Get/Set the option to include the gregorian calendar marker ("è¥¿æš¦")
 
 =head2 with_bc_marker()
 
@@ -705,15 +701,14 @@ DateTime.pm will handle the actual calculation.
 
 Kanji notations have the following limitations, which were :
 
-Gregorian years may only expressed like this: 'Æó¡»¡»»Í', not 'ÆóÀé»Í'
+Gregorian years may only expressed like this: 'äºŒã€‡ã€‡å››', not 'äºŒåƒå››'
 
-All other fields may be expressed as either '½½»Í' or '°ì»Í'. However,
+All other fields may be expressed as either 'åå››' or 'ä¸€å››'. However,
 it will only understand up to the 10s, not anything higher. This is because
 of the limit in the range of the fields. 
 
 =head1 AUTHOR
 
-Copyright (c) 2004-2006 Daisuke Maki E<lt>daisuke@cpan.orgE<gt>. 
-All rights reserved.
+(c) 2004-2006 Daisuke Maki E<lt>daisuke@endeworks.jp<gt>. 
 
 =cut

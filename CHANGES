@@ -1,6 +1,19 @@
 Changes
 =======
 
+0.04000 - 25 Aug 2008
+  [*** BACKWARDS INCOMPATIBILE CHANGES ***]
+  - Previously, invoking parsing methods on the class worked (by chance, not
+    by decision), but that is no longer the case. *ALWAYS* instantiate the
+    formatter.
+  - All default character encodings have been changed to UTF-8
+
+  [Others]
+  - Migrate to Module::Install
+  - All inernal data has been changed to UTF-8.
+  - Require newest DateTime::Calendar::Japanese::Era.
+  - Fix author info
+
 0.03 - 06 Jul 2006
   - Require DateTime::Calendar::Japanese::Era 0.07
   - Remove DateTime::Format::Japanese::Era (the functionality has

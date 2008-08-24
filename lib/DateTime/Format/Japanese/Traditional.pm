@@ -1,10 +1,9 @@
-# $Id: /mirror/DateTime-Format-Japanese/lib/DateTime/Format/Japanese/Traditional.pm 1688 2006-07-06T10:00:51.388109Z lestrrat  $
-#
-# Copyright (c) 2006 Daisuke Maki <dmaki@cpan.org>
-# All rights reserved.
+# $Id: /mirror/datetime/DateTime-Format-Japanese/trunk/lib/DateTime/Format/Japanese/Traditional.pm 69499 2008-08-24T16:17:57.045540Z lestrrat  $
 
 package DateTime::Format::Japanese::Traditional;
 use strict;
+use warnings;
+use utf8;
 use DateTime::Calendar::Japanese;
 use DateTime::Calendar::Japanese::Era;
 use DateTime::Format::Japanese::Common qw(:constants);
@@ -37,20 +36,14 @@ use vars qw(
 );
 
 {
-    @WAREKI_MONTHS = map {
-        DateTime::Format::Japanese::Common::_euc2utf8($_)
-    } qw(ËÓ·î Ç¡·î ÌïÀ¸ ±¬·î »©·î ¿åÌµ·î Ê¸·î ÍÕ·î Ä¹·î ¿ÀÌµ·î Áú·î »ÕÁö);
+    @WAREKI_MONTHS = qw(ç¦æœˆ å¦‚æœˆ å¼¥ç”Ÿ å¯æœˆ çšæœˆ æ°´ç„¡æœˆ æ–‡æœˆ è‘‰æœˆ é•·æœˆ ç¥ç„¡æœˆ éœœæœˆ å¸«èµ°);
     %WAREKI2MONTH = map { ($WAREKI_MONTHS[$_] => $_ + 1) } 0 .. $#WAREKI_MONTHS;
 
-    @ZODIAC_HOURS = map {
-        DateTime::Format::Japanese::Common::_euc2utf8($_)
-    } qw(±¬ Ã¤ Ì¦ ¸á Ì¤ ¿½ ÆÓ Øü °ç »Ò ±¯ ÆÒ);
+    @ZODIAC_HOURS = qw(å¯ è¾° å·³ åˆ æœª ç”³ é…‰ æˆŒ äº¥ å­ ä¸‘ å¯…);
     %ZODIAC2HOUR = map { ($ZODIAC_HOURS[$_] => $_ + 1) } 0 .. $#ZODIAC_HOURS;
 
-    $HOUR_NO_QUARTER_MARKER = 
-        DateTime::Format::Japanese::Common::_euc2utf8('¤Î¹ï');
-    $HOUR_WITH_QUARTER_MARKER =
-        DateTime::Format::Japanese::Common::_euc2utf8('¤Ä¹ï');
+    $HOUR_NO_QUARTER_MARKER = 'ã®åˆ»';
+    $HOUR_WITH_QUARTER_MARKER = 'ã¤åˆ»';
 
     $RE_WAREKI_MONTH = DateTime::Format::Japanese::Common::_make_re(join( "|",
         map { DateTime::Format::Japanese::Common::_make_utf8_re_str($_) }
@@ -67,7 +60,7 @@ use vars qw(
 
 my %NewValidate = (
 	output_encoding => { default => 'utf8' },
-	input_encoding => { default => 'Guess' },
+	input_encoding => { default => 'utf8' },
     number_format => { 
         type    => SCALAR,
         default => FORMAT_KANJI
@@ -398,7 +391,7 @@ DateTime::Format::Japanese::Traditional - A Japanese DateTime Formatter For Trad
   );
 
   my $str = $fmt->format_datetime($dt);
-  my $dt  = $fmt->parse_datetime("Âç²½»°Ç¯ÌïÀ¸»°Æü±¯»°¤Ä¹ï");
+  my $dt  = $fmt->parse_datetime("å¤§åŒ–ä¸‰å¹´å¼¥ç”Ÿä¸‰æ—¥ä¸‘ä¸‰ã¤åˆ»");
 
 =head1 DESCRIPTION
 
@@ -537,6 +530,6 @@ a traditional Japanese date.
 
 =head1 AUTHOR
 
-Copyright (c) 2004 Daisuke Maki E<lt>daisuke@cpan.orgE<gt>. Allr rights reserved.
+(c) 2004-2008 Daisuke Maki E<lt>daisuke@endeworks.jp<gt>.
 
 =cut
